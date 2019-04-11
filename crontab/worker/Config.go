@@ -9,6 +9,8 @@ import (
 type Config struct {
 	EtcdEndpoints []string `json:"etcdEndpoints"`
 	EtcdDialTimeout int	`json:"etcdDialTimeout"`
+	MongodbUri string `json:"mongodbUri"`
+	MongodbConnectionTimeout int `json:"mongodbConnectionTimeout"`
 }
 
 var(

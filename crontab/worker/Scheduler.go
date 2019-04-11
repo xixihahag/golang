@@ -10,7 +10,7 @@ import (
 type Scheduler struct{
 	jobEventChan chan*common.JobEvent // etcd任务事件队列
 	jobPlanTable map[string]*common.JobSchedulePlan
-	jobExcutingTable map[string]*common.JobExcuteInfo // 任务执行表
+	jobExcutingTable map[string]*common.JobExecuteInfo // 任务执行表
 	jobResultChan chan *common.JobExecuteResult
 }
 
@@ -22,6 +22,8 @@ var(
 func (scheduler *Scheduler)handleJobEvent(jobEvent *common.JobEvent)  {
 	var(
 		jobSchedulePlan *common.JobSchedulePlan
+		jobExecuteInfo *common.JobExecuteInfo
+		jobExecuting bool
 		jobExisted bool
 		err error
 	)
@@ -35,13 +37,18 @@ func (scheduler *Scheduler)handleJobEvent(jobEvent *common.JobEvent)  {
 		if jobSchedulePlan,jobExisted = scheduler.jobPlanTable[jobEvent.Job.Name];jobExisted{
 			delete(scheduler.jobPlanTable,jobEvent.Job.Name)
 		}
+	case common.JOB_EVENT_KILL: // 强杀任务事件
+		// 取消掉Command执行 判断任务是否在执行中
+		if jobExecuteInfo,jobExecuting = scheduler.jobExcutingTable[jobEvent.Job.Name];jobExecuting{
+			jobExecuteInfo.CancelFunc() // 触发command杀死shell子进程 任务退出
+		}
 	}
 }
 
 // 尝试执行任务
 func (scheduler *Scheduler)TryStartJob(jobPlan *common.JobSchedulePlan)  {
 	var(
-		jobExecuteInfo *common.JobExcuteInfo
+		jobExecuteInfo *common.JobExecuteInfo
 		jobExcuting bool
 	)
 	// 调度和执行是两件事情
@@ -63,7 +70,6 @@ func (scheduler *Scheduler)TryStartJob(jobPlan *common.JobSchedulePlan)  {
 	G_executor.ExecuteJob(jobExecuteInfo)
 	fmt.Println("执行任务",jobExecuteInfo.Job.Name)
 }
-
 // 重新计算任务调度状态
 func (scheduler *Scheduler)TrySchedule()(scheduleAfter time.Duration) {
 	var(
@@ -100,8 +106,32 @@ func (scheduler *Scheduler)TrySchedule()(scheduleAfter time.Duration) {
 
 // 处理任务结果
 func (scheduler *Scheduler)handleJobResult(result *common.JobExecuteResult)  {
+	var(
+		jobLog *common.JobLog
+	)
+
 	// 删除执行状态
 	delete(scheduler.jobExcutingTable,result.ExcuteInfo.Job.Name)
+
+	// 生成执行日志
+	if result.Err != common.ERR_LOCK_ALREADY_REQUIRED{
+		jobLog = &common.JobLog{
+			JobName:result.ExcuteInfo.Job.Name,
+			Command:result.ExcuteInfo.Job.Command,
+			Output:string(result.Output),
+			PlanTime:result.ExcuteInfo.PlanTIme.UnixNano() / 1000 / 1000,
+			ScheduleTime:result.ExcuteInfo.RealTime.UnixNano() / 1000 / 1000,
+			StartTime:result.StartTime.UnixNano() / 1000 / 1000,
+			EndTime:result.EndTime.UnixNano() / 1000 / 1000,
+		}
+		if result.Err != nil{
+			jobLog.Err = result.Err.Error()
+		}else{
+			jobLog.Err = ""
+		}
+
+		// TODO: 存储到mongodb
+	}
 
 	fmt.Println("任务执行完成",result.ExcuteInfo.Job.Name)
 }
@@ -148,7 +178,7 @@ func InitScheduler() (err error) {
 	G_scheduler = &Scheduler{
 		jobEventChan:make(chan *common.JobEvent,1000),
 		jobPlanTable:make(map[string]*common.JobSchedulePlan),
-		jobExcutingTable:make(map[string]*common.JobExcuteInfo),
+		jobExcutingTable:make(map[string]*common.JobExecuteInfo),
 		jobResultChan:make(chan *common.JobExecuteResult,1000),
 	}
 
