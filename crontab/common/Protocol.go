@@ -66,6 +66,11 @@ type JobLog struct {
 	EndTime int64 `bson:"endTime"`	// 任务执行结束时间
 }
 
+// 日志批次
+type LogBatch struct {
+	Logs []interface{}	// 多条日志
+}
+
 // 应答方法
 func BuildResponse(errno int,msg string,data interface{})(resp []byte,err error)  {
 	// 1 定义一个response对象

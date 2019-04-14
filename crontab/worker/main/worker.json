@@ -9,5 +9,11 @@
   "mongodbUri": "mongodb://192.168.1.139:27017",
 
   "mongodb连接超时时间": "单位毫秒",
-  "mongodbConnectionTimeout": 5000
+  "mongodbConnectionTimeout": 5000,
+
+  "日志批次大小": "为了减少mongodb网络往返，打包成一批写入",
+  "jobLogBatchSize": 100,
+
+  "日志自动提交超时": "在批次未达到阈值之前，超时会自动提交batch，单位毫秒",
+  "jogLogCommitTimeout":1000
 }

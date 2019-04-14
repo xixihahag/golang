@@ -130,7 +130,8 @@ func (scheduler *Scheduler)handleJobResult(result *common.JobExecuteResult)  {
 			jobLog.Err = ""
 		}
 
-		// TODO: 存储到mongodb
+		// 存储到mongodb
+		G_logSink.Append(jobLog)
 	}
 
 	fmt.Println("任务执行完成",result.ExcuteInfo.Job.Name)
@@ -170,6 +171,13 @@ func (scheduler *Scheduler)schedulerLoop()  {
 
 // 推送任务变化事件
 func (scheduler *Scheduler)PushJobEvent(jobEvent *common.JobEvent)  {
+	//if jobEvent == nil{
+	//	fmt.Println("jobEvent == nil")
+	//}
+	//if scheduler == nil{
+	//	fmt.Println("scheduler == nil")
+	//}
+
 	scheduler.jobEventChan <- jobEvent
 }
 
