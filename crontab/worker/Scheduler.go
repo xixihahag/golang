@@ -160,7 +160,6 @@ func (scheduler *Scheduler)schedulerLoop()  {
 		case <- scheduleTimer.C: // 最近的任务到期了
 		case jobResult = <- scheduler.jobResultChan: // 监听任务执行结果
 			scheduler.handleJobResult(jobResult)
-			
 		}
 		// 调度一次任务
 		scheduleAfter = scheduler.TrySchedule()
