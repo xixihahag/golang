@@ -52,12 +52,12 @@ func main()  {
 
 	// 4按照jobName字段过滤，想找出jobName=job10
 	cond = &FindByJobName{
-		"job10",
+		"job1",
 	}
 
 	// 5查询
 	if cursor,err = collection.Find(context.TODO(),cond); err != nil{
-		fmt.Println(err)
+		fmt.Println("err1",err)
 		return
 	}
 
@@ -70,11 +70,11 @@ func main()  {
 		record = &LogRecord{}
 		// 反序列化bson对象
 		if err =cursor.Decode(record); err != nil{
-			fmt.Println(err)
+			fmt.Println("err2",err)
 			return
 		}
 
-		fmt.Println(*record)
+		fmt.Println("out",*record)
 	}
 
 }

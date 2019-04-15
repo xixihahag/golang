@@ -18,5 +18,8 @@ const(
 
 	// 任务锁目录
 	JOB_LOCK_DIR = "/cron/lock/"
+
+	// 服务注册目录
+	JOB_WORKER_DIR="/cron/workers/"
 )
 

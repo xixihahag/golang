@@ -15,5 +15,11 @@
   "etcdDialTimeout": 5000,
 
   "web页面根目录":"静态页面，前后端分离开发",
-  "webroot": "./webroot"
+  "webroot": "./webroot",
+
+  "mongodb地址": "采用mongodb URL",
+  "mongodbUri": "mongodb://192.168.1.139:27017",
+
+  "mongodb连接超时时间": "单位毫秒",
+  "mongodbConnectionTimeout": 5000
 }

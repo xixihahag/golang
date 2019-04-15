@@ -163,6 +163,82 @@ ERR:
 	}
 }
 
+// 查询任务日志
+func handleJobLog(resp http.ResponseWriter,req *http.Request){
+	var(
+		err error
+		name string	// 任务名
+		skipParam string // 翻页参数 从第几条开始
+		limitParam string // 返回多少条
+		skip int
+		limit int
+		logArr []*common.JobLog
+		bytes []byte
+	)
+	// 解析GET参数
+	if err = req.ParseForm();err != nil{
+		goto ERR
+	}
+
+	// 获取请求参数 /job/log/?name=job1&skip=0&limit=10
+	name = req.Form.Get("name")
+	skipParam = req.Form.Get("skip")
+	limitParam = req.Form.Get("limit")
+
+	if skip,err = strconv.Atoi(skipParam);err != nil{
+		skip = 0
+	}
+
+	if limit,err = strconv.Atoi(limitParam);err != nil{
+		limit = 20
+	}
+
+	//fmt.Println("*",name,"*")
+
+	if logArr,err = G_logMgr.ListLog(name,int64(skip),int64(limit));err != nil{
+		goto ERR
+	}
+
+	// 返回正常应答
+	if bytes,err = common.BuildResponse(0,"success",logArr); err == nil{
+		resp.Write(bytes)
+	}
+
+	return
+
+ERR:
+	// 返回错误应答
+	if bytes,err = common.BuildResponse(-1,err.Error(),nil); err == nil{
+		resp.Write(bytes)
+	}
+}
+
+// 获取健康worker列表
+func handleWorkerList(resp http.ResponseWriter,req *http.Request){
+	var(
+		workerArr []string
+		err error
+		bytes []byte
+	)
+
+	if workerArr,err = G_workerMgr.ListWorkers();err != nil{
+		goto ERR
+	}
+
+	// 返回正常应答
+	if bytes,err = common.BuildResponse(0,"success",workerArr); err == nil{
+		resp.Write(bytes)
+	}
+
+	return
+
+ERR:
+	// 返回错误应答
+	if bytes,err = common.BuildResponse(-1,err.Error(),nil); err == nil{
+		resp.Write(bytes)
+	}
+}
+
 // 初始化服务
 func InitApiServer()(err error){
 	var(
@@ -179,6 +255,8 @@ func InitApiServer()(err error){
 	mux.HandleFunc("/job/delete",handleJobDelete)
 	mux.HandleFunc("/job/list",handleJobList)
 	mux.HandleFunc("/job/kill",handleJobKill)
+	mux.HandleFunc("/job/log",handleJobLog)
+	mux.HandleFunc("/worker/list",handleWorkerList)
 
 	// /index.html 匹配最长的,既 最大匹配
 
