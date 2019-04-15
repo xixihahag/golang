@@ -22,7 +22,7 @@ Go语言开发分布式任务调度 轻松搞定高性能Crontab
 
 这个我截了视频里面的一张图，争取用自己的话给讲出来
 
-![1](C:\Users\Immortals\Desktop\1.png)
+![1](https://ws2.sinaimg.cn/large/007rvOURly1g23dnjchzfj30va0o9152.jpg)
 
 
 
